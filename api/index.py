@@ -1,3 +1,6 @@
+"""
+Vercel-compatible API handler
+"""
 import sys
 import os
 
@@ -10,13 +13,21 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(project_root, '.env'))
 
 # Import the FastAPI app
-try:
-    from app.main import app
-except ImportError as e:
-    print(f"Import error: {e}")
-    print(f"Python path: {sys.path}")
-    print(f"Project root: {project_root}")
-    raise
+from app.main import app
+
+# Vercel handler
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 # This is the Vercel entry point
 # Vercel's Edge/Serverless functions look for 'app' by default
+handler = app
+
+# Optional: Add a health check endpoint
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok", "message": "API is running"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
